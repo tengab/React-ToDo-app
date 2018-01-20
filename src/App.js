@@ -11,38 +11,47 @@ import {database} from './firebase'
 const style = {
     margin: 20,
     textAlign: 'center',
-};
+}
 
-const Task = (props) => {
-    return <ListItem
+const Task = (props) => (
+    <ListItem
         primaryText={props.taskName}
         rightIcon={
             <ActionDelete
                 onClick={() => props.deleteTask(props.taskId)}
             />}
-            leftIcon={
-                <ActionInfo
-            onClick={() => props.crossTask(props.taskId)}
+        leftIcon={
+            <ActionInfo
+                onClick={() => props.crossTask(props.taskId)}
             />
         }
     />
-}
+)
 
 
 class App extends Component {
-
+    state = {
+        tasks: null
+    }
 
     componentWillMount = () => {
         database.ref('/homeworkTaskList')
             .on('value', (snapshot) => {
-                console.log(snapshot.val())
+                const mappedObjectEntries = Object.entries(
+                    snapshot.val()
+                )
+                    .map(([key, value]) => {
+                        return value
+                    })
+                this.setState({
+                    tasks: mappedObjectEntries
+                })
             })
     }
 
     addTask = () => {
         alert('ADD TASK')
     }
-
     deleteTask = () => {
         alert('DELETE TASK')
     }
@@ -69,23 +78,19 @@ class App extends Component {
                         }}
                     />
                     <List>
-                        <Task
-                            taskName={'Pierwszy task'}
-                            taskId={0}
-                            deleteTask={() => {
-                                this.deleteTask()
-                            }}
-                            crossTask={()=> {
-                                this.crossTask()
-                            }}
-                        />
-                        <Task
-                            taskName={'drugi task'}
-                            taskId={0}
-                            deleteTask={() => {this.deleteTask()}}
-                            crossTask={()=> {this.crossTask()
-                            }}
-                        />
+                        {this.state.tasks
+                        &&
+                        this.state.tasks.map((task) => (
+
+                            <Task
+                                key={task.key}
+                                taskName={task}
+                                taskId={task.key}
+                                deleteTask={this.deleteTask}
+                                crossTask={this.crossTask}
+                            />
+                        ))
+                        }
                     </List>
                 </Paper>
             </MuiThemeProvider>
