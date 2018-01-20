@@ -19,7 +19,8 @@ const Task = (props) => (
         rightIcon={
             <ActionDelete
                 onClick={() => props.deleteTask(props.taskId)}
-            />}
+            />
+        }
         leftIcon={
             <ActionInfo
                 onClick={() => props.crossTask(props.taskId)}
@@ -31,29 +32,48 @@ const Task = (props) => (
 
 class App extends Component {
     state = {
-        tasks: null
+        tasks: null,
+        newTaskName: ''
     }
 
     componentWillMount = () => {
         database.ref('/homeworkTaskList')
             .on('value', (snapshot) => {
-                const mappedObjectEntries = Object.entries(
-                    snapshot.val()
-                )
-                    .map(([key, value]) => {
-                        return value
-                    })
+                const mappedObjectEntries =
+                    Object.entries(
+                        snapshot.val() || {}
+                    )
+                        .map(([key, value]) => {
+                            value.key = key
+                            return value
+
+                        })
                 this.setState({
                     tasks: mappedObjectEntries
                 })
             })
+
     }
 
     addTask = () => {
-        alert('ADD TASK')
+        if (!this.state.newTaskName){
+            alert('Ogarnij się, do zrobienia musi być COŚ')
+            return
+        }
+console.log()
+        database.ref('/homeworkTaskList')
+            .push({
+                name: this.state.newTaskName
+            })
+        this.setState({
+            newTaskName: ''
+        })
     }
-    deleteTask = () => {
-        alert('DELETE TASK')
+
+
+    deleteTask = (taskId) => {
+        console.log(taskId)
+        database.ref(`/homeworkTaskList/${taskId}`).remove()
     }
     crossTask = () => {
         alert('CROSS TASK')
@@ -65,6 +85,8 @@ class App extends Component {
                 <Paper style={style} zDepth={3}>
                     <h1>React ToDo List</h1>
                     <TextField
+                        value={this.state.newTaskName}
+                        onChange={(event, value) => this.setState({newTaskName: value})}
                         hintText={"Type here"}
                         floatingLabelText={"Please type your task"}
                         fullWidth={true}
@@ -81,10 +103,9 @@ class App extends Component {
                         {this.state.tasks
                         &&
                         this.state.tasks.map((task) => (
-
                             <Task
                                 key={task.key}
-                                taskName={task}
+                                taskName={task.name}
                                 taskId={task.key}
                                 deleteTask={this.deleteTask}
                                 crossTask={this.crossTask}
