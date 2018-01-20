@@ -33,7 +33,8 @@ const Task = (props) => (
 class App extends Component {
     state = {
         tasks: null,
-        newTaskName: ''
+        newTaskName: '',
+        doneTask: ''
     }
 
     componentWillMount = () => {
@@ -60,10 +61,10 @@ class App extends Component {
             alert('Ogarnij się, do zrobienia musi być COŚ')
             return
         }
-console.log()
         database.ref('/homeworkTaskList')
             .push({
-                name: this.state.newTaskName
+                name: this.state.newTaskName,
+                done: false
             })
         this.setState({
             newTaskName: ''
@@ -72,12 +73,15 @@ console.log()
 
 
     deleteTask = (taskId) => {
-        console.log(taskId)
+
         database.ref(`/homeworkTaskList/${taskId}`).remove()
     }
-    crossTask = () => {
-        alert('CROSS TASK')
-    }
+    crossTask = (taskId) => {
+        database.ref(`/homeworkTaskList/${taskId}`)
+            .set({name: 'DUPAKA',
+                done: true})
+            this.setState()
+                       }
 
     render() {
         return (
