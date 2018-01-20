@@ -6,7 +6,7 @@ import Paper from 'material-ui/Paper';
 import ActionInfo from 'material-ui/svg-icons/action/info';
 import {List, ListItem} from 'material-ui/List';
 import ActionDelete from 'material-ui/svg-icons/action/delete'
-
+import {database} from './firebase'
 
 const style = {
     margin: 20,
@@ -25,12 +25,19 @@ const Task = (props) => {
             onClick={() => props.crossTask(props.taskId)}
             />
         }
-
     />
 }
 
 
 class App extends Component {
+
+
+    componentWillMount = () => {
+        database.ref('/homeworkTaskList')
+            .on('value', (snapshot) => {
+                console.log(snapshot.val())
+            })
+    }
 
     addTask = () => {
         alert('ADD TASK')
@@ -48,15 +55,11 @@ class App extends Component {
             <MuiThemeProvider>
                 <Paper style={style} zDepth={3}>
                     <h1>React ToDo List</h1>
-
-
                     <TextField
                         hintText={"Type here"}
                         floatingLabelText={"Please type your task"}
                         fullWidth={true}
                     />
-
-
                     <RaisedButton
                         label={"ADD TASK"}
                         fullWidth={true}
@@ -65,7 +68,6 @@ class App extends Component {
                             this.addTask()
                         }}
                     />
-
                     <List>
                         <Task
                             taskName={'Pierwszy task'}
@@ -80,11 +82,8 @@ class App extends Component {
                         <Task
                             taskName={'drugi task'}
                             taskId={0}
-                            deleteTask={() => {
-                                this.deleteTask()
-                            }}
-                            crossTask={()=> {
-                                this.crossTask()
+                            deleteTask={() => {this.deleteTask()}}
+                            crossTask={()=> {this.crossTask()
                             }}
                         />
                     </List>
