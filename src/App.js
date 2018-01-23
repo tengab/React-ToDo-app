@@ -7,15 +7,17 @@ import ActionInfo from 'material-ui/svg-icons/action/info';
 import {List, ListItem} from 'material-ui/List';
 import ActionDelete from 'material-ui/svg-icons/action/delete'
 import {database} from './firebase'
+import {Card, CardHeader, CardText} from 'material-ui/Card';
 
 const style = {
-    margin: 20,
+    margin: 10,
+    padding: 10,
     textAlign: 'center',
 }
-
 const Task = (props) => (
     <ListItem
         primaryText={props.taskName}
+        style={{textDecoration: props.taskDec}}
         rightIcon={
             <ActionDelete
                 onClick={() => props.deleteTask(props.taskId)}
@@ -29,14 +31,13 @@ const Task = (props) => (
     />
 )
 
-
 class App extends Component {
     state = {
         tasks: null,
-        newTaskName: '',
-        doneTask: ''
+        taskSearch: '',
+        checked: '',
+        newTaskName: ''
     }
-
     componentWillMount = () => {
         database.ref('/homeworkTaskList')
             .on('value', (snapshot) => {
@@ -47,18 +48,15 @@ class App extends Component {
                         .map(([key, value]) => {
                             value.key = key
                             return value
-
                         })
                 this.setState({
                     tasks: mappedObjectEntries
                 })
             })
-
     }
-
     addTask = () => {
-        if (!this.state.newTaskName){
-            alert('Ogarnij się, do zrobienia musi być COŚ')
+        if (!this.state.newTaskName) {
+            alert('This cannot be empty. Type smth')
             return
         }
         database.ref('/homeworkTaskList')
@@ -67,21 +65,66 @@ class App extends Component {
                 done: false
             })
         this.setState({
-            newTaskName: ''
+            newTaskName: '',
+            checked: ''
         })
     }
-
-
     deleteTask = (taskId) => {
-
         database.ref(`/homeworkTaskList/${taskId}`).remove()
     }
-    crossTask = (taskId) => {
+    crossTask = (taskId,) => {
         database.ref(`/homeworkTaskList/${taskId}`)
-            .set({name: 'DUPAKA',
-                done: true})
-            this.setState()
-                       }
+            .update({
+                done: true,
+            })
+        console.log(taskId)
+
+
+
+    }
+    showDoneList = () => {
+        database.ref('/homeworkTaskList')
+            .on('value', (snapshot) => {
+                const nameToCross = Object.entries(
+                    snapshot.val() || {}
+                )
+                    .map(([key, value]) => {
+                        value.key = key
+                        return value
+                    })
+                    .filter((el) => {
+                        if (el.done === true)
+                            return el
+                    })
+                this.setState({
+                    tasks: nameToCross
+                })
+            })
+    }
+    showUndoneList = () => {
+        database.ref('/homeworkTaskList')
+            .on('value', (snapshot) => {
+                const filteredUndoneTasks = Object.entries(
+                    snapshot.val() || {}
+                )
+                    .map(([key, value]) => {
+                        value.key = key
+                        return value
+                    })
+                    .filter((el) => {
+                        if (el.done === false)
+                            return el
+                    })
+                this.setState({
+                    tasks: filteredUndoneTasks
+                })
+            })
+    }
+
+    searchTaskName = (event, value) => {
+        this.setState({taskSearch: value});
+
+    }
 
     render() {
         return (
@@ -104,19 +147,69 @@ class App extends Component {
                         }}
                     />
                     <List>
-                        {this.state.tasks
-                        &&
-                        this.state.tasks.map((task) => (
-                            <Task
-                                key={task.key}
-                                taskName={task.name}
-                                taskId={task.key}
-                                deleteTask={this.deleteTask}
-                                crossTask={this.crossTask}
-                            />
-                        ))
+                        {
+                            this.state.tasks
+                            &&
+                            this.state.tasks.map((task) => (
+                                <Task
+                                    key={task.key}
+                                    taskName={task.name}
+                                    taskId={task.key}
+                                    taskDec={task.done ?
+                                        'line-through'
+                                        :
+                                        'none'
+                                    }
+                                    deleteTask={this.deleteTask}
+                                    crossTask={this.crossTask}
+
+                                />
+                            ))
                         }
                     </List>
+                    <Paper style={{margin: 20, padding: 20}} zDepth={2}>
+                        <Card>
+                            <CardHeader
+                                title="Find a task"
+                                actAsExpander={true}
+                                showExpandableButton={true}
+                            />
+                            <CardText expandable={true}>
+                                <TextField
+                                    onChange={this.searchTaskName}
+                                    hintText={"Type here"}
+                                    floatingLabelText={"Please type your task"}
+                                    fullWidth={true}
+                                />
+                            </CardText>
+                        </Card>
+                    </Paper>
+                    <RaisedButton
+                        label={"SHOW LIST OF DONE"}
+                        fullWidth={true}
+                        primary={true}
+                        onClick={() => {
+                            this.showDoneList()
+                        }}
+                    />
+                    <br/><br/>
+                    <RaisedButton
+                        label={"SHOW LIST OF UNDONE"}
+                        fullWidth={true}
+                        primary={true}
+                        onClick={() => {
+                            this.showUndoneList()
+                        }}
+                    />
+                    <br/><br/>
+                    <RaisedButton
+                        label={"SHOW ALL"}
+                        fullWidth={true}
+                        primary={true}
+                        onClick={() => {
+                            this.componentWillMount()
+                        }}
+                    />
                 </Paper>
             </MuiThemeProvider>
         )
