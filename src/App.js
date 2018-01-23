@@ -158,7 +158,9 @@ class App extends Component {
                         {
                             this.state.tasks
                             &&
-                            this.state.tasks.map((task) => (
+                            this.state.tasks
+                            .filter((el) => el.name.indexOf(this.state.taskSearch) !== -1)
+                            .map((task) => (
                                 <Task
                                     key={task.key}
                                     taskName={task.name}
