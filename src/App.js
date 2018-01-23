@@ -17,7 +17,12 @@ const style = {
 const Task = (props) => (
     <ListItem
         primaryText={props.taskName}
-        style={{textDecoration: props.taskDec}}
+        style={
+            {
+                textDecoration: props.taskDec,
+            }}
+
+
         rightIcon={
             <ActionDelete
                 onClick={() => props.deleteTask(props.taskId)}
@@ -36,7 +41,8 @@ class App extends Component {
         tasks: null,
         taskSearch: '',
         checked: '',
-        newTaskName: ''
+        newTaskName: '',
+        group: 'ALL TASKS'
     }
     componentWillMount = () => {
         database.ref('/homeworkTaskList')
@@ -50,7 +56,8 @@ class App extends Component {
                             return value
                         })
                 this.setState({
-                    tasks: mappedObjectEntries
+                    tasks: mappedObjectEntries,
+                    group: 'ALL TASKS'
                 })
             })
     }
@@ -77,9 +84,6 @@ class App extends Component {
             .update({
                 done: true,
             })
-        console.log(taskId)
-
-
 
     }
     showDoneList = () => {
@@ -97,11 +101,13 @@ class App extends Component {
                             return el
                     })
                 this.setState({
-                    tasks: nameToCross
+                    tasks: nameToCross,
+                    group: "DONE TASKS"
                 })
             })
     }
     showUndoneList = () => {
+
         database.ref('/homeworkTaskList')
             .on('value', (snapshot) => {
                 const filteredUndoneTasks = Object.entries(
@@ -116,7 +122,8 @@ class App extends Component {
                             return el
                     })
                 this.setState({
-                    tasks: filteredUndoneTasks
+                    tasks: filteredUndoneTasks,
+                    group: 'UNDONE TASKS'
                 })
             })
     }
@@ -146,6 +153,7 @@ class App extends Component {
                             this.addTask()
                         }}
                     />
+                    <h5>{this.state.group}</h5>
                     <List>
                         {
                             this.state.tasks
@@ -162,7 +170,6 @@ class App extends Component {
                                     }
                                     deleteTask={this.deleteTask}
                                     crossTask={this.crossTask}
-
                                 />
                             ))
                         }
