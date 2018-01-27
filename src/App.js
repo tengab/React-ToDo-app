@@ -29,10 +29,13 @@ const Task = (props) => (
             />
         }
         leftIcon={
+
             <ActionInfo
                 onClick={() => props.crossTask(props.taskId)}
             />
+
         }
+
     />
 )
 
@@ -79,13 +82,19 @@ class App extends Component {
     deleteTask = (taskId) => {
         database.ref(`/homeworkTaskList/${taskId}`).remove()
     }
-    crossTask = (taskId,) => {
+    crossTask = (taskId) => {
         database.ref(`/homeworkTaskList/${taskId}`)
             .update({
                 done: true,
             })
-
     }
+    unCrossTask = (taskId) => {
+        database.ref(`/homeworkTaskList/${taskId}`)
+            .update({
+                done: false,
+            })
+    }
+
     showDoneList = () => {
         database.ref('/homeworkTaskList')
             .on('value', (snapshot) => {
@@ -107,7 +116,6 @@ class App extends Component {
             })
     }
     showUndoneList = () => {
-
         database.ref('/homeworkTaskList')
             .on('value', (snapshot) => {
                 const filteredUndoneTasks = Object.entries(
@@ -130,7 +138,6 @@ class App extends Component {
 
     searchTaskName = (event, value) => {
         this.setState({taskSearch: value});
-
     }
 
     render() {
@@ -159,21 +166,24 @@ class App extends Component {
                             this.state.tasks
                             &&
                             this.state.tasks
-                            .filter((el) => el.name.indexOf(this.state.taskSearch) !== -1)
-                            .map((task) => (
-                                <Task
-                                    key={task.key}
-                                    taskName={task.name}
-                                    taskId={task.key}
-                                    taskDec={task.done ?
-                                        'line-through'
+                                .filter((el) => el.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").indexOf(this.state.taskSearch.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "")) !== -1)
+                                .map((task) => (
+                                    <Task
+                                        key={task.key}
+                                        taskName={task.name}
+                                        taskId={task.key}
+                                        taskDec={task.done ?
+                                            'line-through'
+                                            :
+                                            'none'
+                                        }
+                                        deleteTask={this.deleteTask}
+                                        crossTask={task.done ?
+                                        this.unCrossTask
                                         :
-                                        'none'
-                                    }
-                                    deleteTask={this.deleteTask}
-                                    crossTask={this.crossTask}
-                                />
-                            ))
+                                        this.crossTask}
+                                    />
+                                ))
                         }
                     </List>
                     <Paper style={{margin: 20, padding: 20}} zDepth={2}>
